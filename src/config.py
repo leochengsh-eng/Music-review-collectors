@@ -22,6 +22,7 @@ class Settings:
     report_timezone: str
     report_lookback_days: int
     include_types: list[str]
+    email_enabled: bool
 
 
 def load_settings() -> Settings:
@@ -33,6 +34,7 @@ def load_settings() -> Settings:
         report_timezone=os.getenv("REPORT_TIMEZONE", "Asia/Shanghai"),
         report_lookback_days=int(os.getenv("REPORT_LOOKBACK_DAYS", "14")),
         include_types=[x.strip() for x in os.getenv("INCLUDE_TYPES", "album,ep,reissue,sunday_review").split(",") if x.strip()],
+        email_enabled=os.getenv("EMAIL_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"},
     )
 
 
