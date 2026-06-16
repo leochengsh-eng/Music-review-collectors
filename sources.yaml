@@ -1,0 +1,73 @@
+sources:
+  - name: Pitchfork
+    id: pitchfork
+    type: rss
+    url: https://pitchfork.com/rss/reviews/albums/
+    role: [discovery, score_if_available]
+    priority: high
+    enabled: true
+    score_scale: 10
+  - name: The Guardian
+    id: guardian
+    type: rss
+    url: https://www.theguardian.com/music/albumreviews/rss
+    role: [discovery, score]
+    priority: high
+    enabled: true
+    score_scale: 5
+  - name: AllMusic
+    id: allmusic
+    type: webpage
+    url: https://www.allmusic.com/newreleases
+    role: [discovery, score]
+    priority: high
+    enabled: true
+    score_scale: 5
+  - name: Sputnikmusic
+    id: sputnikmusic
+    type: webpage
+    url: https://www.sputnikmusic.com/reviews/
+    role: [discovery, score]
+    priority: high
+    enabled: true
+    score_scale: 5
+  - name: Resident Advisor
+    id: resident_advisor
+    type: rss
+    url: https://ra.co/xml/reviews.xml
+    role: [discovery, score]
+    priority: high
+    enabled: true
+    score_scale: 5
+  - name: The Line of Best Fit
+    id: line_of_best_fit
+    type: rss
+    url: https://www.thelineofbestfit.com/reviews/albums.rss
+    role: [discovery, score]
+    priority: high
+    enabled: true
+    score_scale: 10
+  - name: Album of the Year
+    id: album_of_the_year
+    type: aggregator
+    url: https://www.albumoftheyear.org/releases/this-week/
+    role: [discovery, score, reverse_lookup]
+    priority: high
+    enabled: true
+    score_scale: 100
+  - name: Metacritic
+    id: metacritic
+    type: aggregator
+    url: https://www.metacritic.com/browse/albums/release-date/new-releases/date
+    role: [discovery, score, reverse_lookup]
+    priority: high
+    enabled: true
+    score_scale: 100
+  - name: AnyDecentMusic
+    id: anydecentmusic
+    type: aggregator
+    url: https://www.anydecentmusic.com/recent-reviews.aspx
+    role: [discovery, score, reverse_lookup]
+    priority: medium
+    enabled: true
+    score_scale: 10
