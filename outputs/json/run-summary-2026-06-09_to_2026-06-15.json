@@ -1,0 +1,44 @@
+{
+  "start": "2026-06-09",
+  "end": "2026-06-15",
+  "html": "docs/reports/album-review-digest-2026-06-09_to_2026-06-15.html",
+  "source_statuses": [
+    {
+      "source_name": "Pitchfork",
+      "status": "zero_items",
+      "items_found": 0,
+      "items_parsed": 0,
+      "items_failed": 0,
+      "error_message": "RSS feed returned zero entries",
+      "last_success_at": null
+    },
+    {
+      "source_name": "The Guardian",
+      "status": "zero_items",
+      "items_found": 0,
+      "items_parsed": 0,
+      "items_failed": 0,
+      "error_message": "RSS feed returned zero entries",
+      "last_success_at": null
+    },
+    {
+      "source_name": "Album of the Year",
+      "status": "failed",
+      "items_found": 0,
+      "items_parsed": 0,
+      "items_failed": 1,
+      "error_message": "HTTPSConnectionPool(host='www.albumoftheyear.org', port=443): Max retries exceeded with url: /releases/this-week/ (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))",
+      "last_success_at": null
+    },
+    {
+      "source_name": "Metacritic",
+      "status": "failed",
+      "items_found": 0,
+      "items_parsed": 0,
+      "items_failed": 1,
+      "error_message": "HTTPSConnectionPool(host='www.metacritic.com', port=443): Max retries exceeded with url: /browse/albums/release-date/new-releases/date (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))",
+      "last_success_at": null
+    }
+  ],
+  "total_reviews": 2
+}

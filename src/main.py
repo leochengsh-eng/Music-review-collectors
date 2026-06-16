@@ -34,9 +34,13 @@ def export_csv(path: Path, rows: list[dict]):
     with path.open("w", newline="", encoding="utf-8") as fh:
         w=csv.DictWriter(fh, fieldnames=fields); w.writeheader(); w.writerows([{k:r.get(k) for k in fields} for r in rows])
 
+MVP_SOURCE_IDS = {"pitchfork", "guardian", "album_of_the_year", "metacritic"}
+
 def run_collection(window):
     all_items=[]; statuses=[]
-    for source in load_sources():
+    sources = [s for s in load_sources() if s.get("id") in MVP_SOURCE_IDS]
+    sources.sort(key=lambda s: (0 if s.get("id") in {"pitchfork", "guardian"} else 1, s.get("name", "")))
+    for source in sources:
         if not source.get("enabled", True): continue
         if source.get("type") == "rss": items,status=collect_rss(source)
         elif source.get("type") == "aggregator": items,status=collect_aggregator(source)
@@ -49,7 +53,7 @@ def pipeline(mode, window, send=False):
     if mode == "report-only": items=[]; statuses=[]
     else: items,statuses=run_collection(window); upsert_reviews(conn, items); insert_source_statuses(conn, statuses)
     rows=load_reviews(conn)
-    html_path=render_report(rows, window)
+    html_path=render_report(rows, window, source_statuses=[s.__dict__ for s in statuses])
     export_csv(Path(f"outputs/csv/reviews-{window.start}_to_{window.end}.csv"), rows)
     export_csv(Path(f"outputs/csv/recommended-{window.start}_to_{window.end}.csv"), [r for r in rows if (r.get('normalized_score_10') or 0)>=7])
     export_csv(Path(f"outputs/csv/manual-check-{window.start}_to_{window.end}.csv"), [r for r in rows if r.get('status')=='manual_check'])

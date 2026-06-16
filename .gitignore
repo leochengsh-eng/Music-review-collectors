@@ -3,7 +3,3 @@ __pycache__/
 .pytest_cache/
 .env
 data/*.sqlite
-logs/*.log
-outputs/html/*.html
-outputs/csv/*.csv
-outputs/json/*.json
