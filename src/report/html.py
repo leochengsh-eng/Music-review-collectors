@@ -9,24 +9,32 @@ except ModuleNotFoundError:
 from src.utils.dates import ReportWindow, in_formal_window, is_late_addition
 
 
-def build_sections(items: list[dict], window: ReportWindow):
+def build_sections(items: list[dict], window: ReportWindow, source_statuses: list[dict] | None = None):
     recommended=[i for i in items if (i.get('normalized_score_10') or 0) >= 7 and i.get('status') != 'manual_check']
     by_genre={g: [] for g in ["Pop","Rock","Electronic","R&B / Soul","Folk / Country","Global / C-Pop","Unknown"]}
     for i in recommended: by_genre.setdefault(i.get('genre_bucket') or 'Unknown', []).append(i)
     manual=[i for i in items if i.get('status')=='manual_check' or i.get('parse_status')!='success' or i.get('dedupe_status')=='uncertain']
     aggregators=[i for i in items if i.get('status')=='aggregator_find']
     late=[i for i in items if is_late_addition(__import__('datetime').date.fromisoformat(i['review_date']) if i.get('review_date') else None, window)]
-    new=[i for i in items if in_formal_window(__import__('datetime').date.fromisoformat(i['review_date']) if i.get('review_date') else window.start, window)]
-    return {"recommended": recommended, "by_genre": by_genre, "manual": manual, "aggregators": aggregators, "late": late, "new": new}
+    new=[i for i in items if i.get('status') not in {'manual_check', 'aggregator_find'} and in_formal_window(__import__('datetime').date.fromisoformat(i['review_date']) if i.get('review_date') else window.start, window)]
+    statuses = source_statuses or []
+    no_real_data = not new and not aggregators
+    return {"recommended": recommended, "by_genre": by_genre, "manual": manual, "aggregators": aggregators, "late": late, "new": new, "source_statuses": statuses, "no_real_data": no_real_data}
 
 
-def _fallback_html(items: list[dict], window: ReportWindow) -> str:
+def _fallback_html(items: list[dict], window: ReportWindow, source_statuses: list[dict] | None = None) -> str:
+    sections = build_sections(items, window, source_statuses)
     cards = "".join(
         f'<div class="card"><b>{escape(str(i.get("artist") or "Unknown artist"))} — {escape(str(i.get("album") or "Unknown album"))}</b>'
         f'<span>{escape(str(i.get("normalized_score_10") if i.get("normalized_score_10") is not None else "—"))}/10</span></div>'
         for i in items
     )
-    return f"<!doctype html><html><body><h1>Album Review Weekly Digest</h1><p>{window.start} to {window.end}</p>{cards}</body></html>"
+    status_rows = "".join(
+        f'<li>{escape(str(s.get("source_name")))}: {escape(str(s.get("status")))} — found {escape(str(s.get("items_found", 0)))}, parsed {escape(str(s.get("items_parsed", 0)))} {escape(str(s.get("error_message") or ""))}</li>'
+        for s in sections["source_statuses"]
+    )
+    empty = '<p>No valid real album reviews or aggregator finds were collected for this report period.</p>' if sections["no_real_data"] else ''
+    return f"<!doctype html><html><body><h1>Album Review Weekly Digest</h1><p>{window.start} to {window.end}</p>{empty}{cards}<h2>Source Status</h2><ul>{status_rows}</ul></body></html>"
 
 
 def _render_archive_page(report_paths: list[Path], docs_dir: Path) -> str:
@@ -59,19 +67,19 @@ def update_pages_index(docs_dir: str | Path = "docs") -> None:
     (docs_path / "index.html").write_text(_render_index_page(latest, docs_path), encoding="utf-8")
 
 
-def render_report(items: list[dict], window: ReportWindow, output_dir: str | Path="docs/reports") -> Path:
-    sections = build_sections(items, window)
+def render_report(items: list[dict], window: ReportWindow, output_dir: str | Path="docs/reports", source_statuses: list[dict] | None = None) -> Path:
+    sections = build_sections(items, window, source_statuses)
     if Environment:
         env=Environment(loader=FileSystemLoader("src/report/templates"), autoescape=select_autoescape())
         try:
             html=env.get_template("weekly_digest.html.j2").render(window=window, **sections)
         except Exception:
-            html=_fallback_html(items, window)
+            html=_fallback_html(items, window, source_statuses)
     else:
-        html=_fallback_html(items, window)
+        html=_fallback_html(items, window, source_statuses)
     out=Path(output_dir); out.mkdir(parents=True, exist_ok=True)
     path=out / f"album-review-digest-{window.start}_to_{window.end}.html"
     path.write_text(html, encoding="utf-8")
-    if out.as_posix().endswith("docs/reports"):
+    if out.name == "reports" and out.parent.name == "docs":
         update_pages_index(out.parent)
     return path

@@ -31,7 +31,7 @@ class ReviewItem:
     subgenre: str | None = None
     genre_confidence: str = "low"
     recommended_track: str | None = None
-    brief_review_cn: str = "资料有限，保留为本周新发现条目。"
+    brief_review_cn: str | None = None
     reason_for_inclusion: str = "discovered_review"
     first_seen_at: datetime | None = None
     last_seen_at: datetime | None = None
