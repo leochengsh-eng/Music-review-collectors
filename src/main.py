@@ -7,7 +7,7 @@ from src.collector.rss import collect_rss
 from src.collector.webpage import collect_webpage
 from src.collector.aggregator import collect_aggregator
 from src.delivery.emailer import send_email
-from src.models import ReviewItem
+from src.models import ReviewItem, SourceRunStatus
 from src.normalize.genres import classify_genre
 from src.normalize.scores import is_recommendation
 from src.report.html import render_report
@@ -34,6 +34,25 @@ def export_csv(path: Path, rows: list[dict]):
     with path.open("w", newline="", encoding="utf-8") as fh:
         w=csv.DictWriter(fh, fieldnames=fields); w.writeheader(); w.writerows([{k:r.get(k) for k in fields} for r in rows])
 
+def _source_status_manual_item(status: SourceRunStatus, source: dict) -> ReviewItem | None:
+    if status.status == "success" and status.items_parsed > 0:
+        return None
+    reason = status.error_message or ("source_returned_zero_items" if status.items_parsed == 0 else status.status)
+    return ReviewItem(
+        artist="Manual Check",
+        album=f"{source.get('name', status.source_name)} source status",
+        release_type="unknown",
+        review_source=status.source_name,
+        review_url=source.get("url", ""),
+        status="manual_check",
+        parse_status="source_status",
+        score_status="no_score",
+        confidence="low",
+        manual_check_reason=reason,
+        reason_for_inclusion="source_status",
+    )
+
+
 def run_collection(window):
     all_items=[]; statuses=[]
     for source in load_sources():
@@ -42,14 +61,17 @@ def run_collection(window):
         elif source.get("type") == "aggregator": items,status=collect_aggregator(source)
         else: items,status=collect_webpage(source)
         all_items.extend(items); statuses.append(status)
+        manual_item = _source_status_manual_item(status, source)
+        if manual_item:
+            all_items.append(manual_item)
     return enrich(all_items), statuses
 
-def pipeline(mode, window, send=True):
+def pipeline(mode, window, send=False):
     logger=configure_logging(Path(f"logs/run-{window.end}.log")); conn=connect()
     if mode == "report-only": items=[]; statuses=[]
     else: items,statuses=run_collection(window); upsert_reviews(conn, items); insert_source_statuses(conn, statuses)
-    rows=load_reviews(conn)
-    html_path=render_report(rows, window)
+    rows=[i.to_dict() for i in items] if mode != "report-only" else load_reviews(conn)
+    html_path=render_report(rows, window, source_statuses=[s.__dict__ for s in statuses])
     export_csv(Path(f"outputs/csv/reviews-{window.start}_to_{window.end}.csv"), rows)
     export_csv(Path(f"outputs/csv/recommended-{window.start}_to_{window.end}.csv"), [r for r in rows if (r.get('normalized_score_10') or 0)>=7])
     export_csv(Path(f"outputs/csv/manual-check-{window.start}_to_{window.end}.csv"), [r for r in rows if r.get('status')=='manual_check'])
@@ -65,5 +87,6 @@ def main():
     args=p.parse_args(); settings=load_settings(); lookback=args.lookback_days or settings.report_lookback_days
     if args.start_date and args.end_date: window=ReportWindow(date.fromisoformat(args.start_date), date.fromisoformat(args.end_date), date.fromisoformat(args.start_date), date.fromisoformat(args.end_date), settings.report_timezone)
     else: window=previous_tuesday_window(tz_name=settings.report_timezone, lookback_days=lookback)
-    pipeline("weekly" if args.mode=="test-email" else args.mode, window, send=args.mode in {"weekly","test-email"})
+    email_requested = args.mode == "test-email" or (args.mode == "weekly" and settings.email_enabled)
+    pipeline("weekly" if args.mode=="test-email" else args.mode, window, send=email_requested)
 if __name__ == "__main__": main()
