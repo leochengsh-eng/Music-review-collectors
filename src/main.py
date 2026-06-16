@@ -44,7 +44,7 @@ def run_collection(window):
         all_items.extend(items); statuses.append(status)
     return enrich(all_items), statuses
 
-def pipeline(mode, window, send=True):
+def pipeline(mode, window, send=False):
     logger=configure_logging(Path(f"logs/run-{window.end}.log")); conn=connect()
     if mode == "report-only": items=[]; statuses=[]
     else: items,statuses=run_collection(window); upsert_reviews(conn, items); insert_source_statuses(conn, statuses)
@@ -65,5 +65,6 @@ def main():
     args=p.parse_args(); settings=load_settings(); lookback=args.lookback_days or settings.report_lookback_days
     if args.start_date and args.end_date: window=ReportWindow(date.fromisoformat(args.start_date), date.fromisoformat(args.end_date), date.fromisoformat(args.start_date), date.fromisoformat(args.end_date), settings.report_timezone)
     else: window=previous_tuesday_window(tz_name=settings.report_timezone, lookback_days=lookback)
-    pipeline("weekly" if args.mode=="test-email" else args.mode, window, send=args.mode in {"weekly","test-email"})
+    email_requested = args.mode == "test-email" or (args.mode == "weekly" and settings.email_enabled)
+    pipeline("weekly" if args.mode=="test-email" else args.mode, window, send=email_requested)
 if __name__ == "__main__": main()

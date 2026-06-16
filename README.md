@@ -1,6 +1,6 @@
 # Album Review Weekly Digest
 
-A Python 3.11+ tool that collects album reviews from multiple music publications and aggregators, normalizes available scores to a 10-point scale, groups recommendations by genre, renders a standalone weekly HTML digest, and emails it to `leochengsh@gmail.com`.
+A Python 3.11+ tool that collects album reviews from multiple music publications and aggregators, normalizes available scores to a 10-point scale, groups recommendations by genre, renders a standalone weekly HTML digest, and publishes it with GitHub Pages.
 
 ## Source strategy
 
@@ -17,13 +17,9 @@ Pitchfork remains a discovery source even when a score is unavailable; such item
 
 Edit `sources.yaml` to enable, disable, or add sources. Runtime settings can be supplied in `.env` or environment variables; copy `.env.example` as a starting point.
 
-Required SMTP secrets for GitHub Actions:
+GitHub Pages is the primary delivery method. The weekly workflow does not require SMTP, Gmail, or a Gmail App Password.
 
-- `SMTP_HOST`
-- `SMTP_PORT`
-- `SMTP_USERNAME`
-- `SMTP_PASSWORD`
-- `EMAIL_FROM`
+Email delivery is optional and disabled by default. To enable it for local runs or a custom workflow, set `EMAIL_ENABLED=true` and provide SMTP settings such as `SMTP_HOST`, `SMTP_PORT`, and `EMAIL_FROM`. Authentication is optional and only used when `SMTP_USERNAME` and `SMTP_PASSWORD` are both provided.
 
 `EMAIL_TO` defaults to `leochengsh@gmail.com`.
 
@@ -52,12 +48,13 @@ python -m src.main --mode test-email
 Each run updates SQLite and writes artifacts:
 
 - `data/album_reviews.sqlite`
-- `outputs/html/album-review-digest-YYYY-MM-DD_to_YYYY-MM-DD.html`
+- `docs/reports/album-review-digest-YYYY-MM-DD_to_YYYY-MM-DD.html`
 - `outputs/csv/reviews-YYYY-MM-DD_to_YYYY-MM-DD.csv`
 - `outputs/csv/recommended-YYYY-MM-DD_to_YYYY-MM-DD.csv`
 - `outputs/csv/manual-check-YYYY-MM-DD_to_YYYY-MM-DD.csv`
 - `outputs/json/run-summary-YYYY-MM-DD_to_YYYY-MM-DD.json`
 - `logs/run-YYYY-MM-DD.log`
+- `docs/index.html` and `docs/archive.html` for the latest report link and report archive
 
 ## Manual Check items
 

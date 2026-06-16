@@ -1,4 +1,5 @@
 from __future__ import annotations
+from html import escape
 from pathlib import Path
 
 try:
@@ -6,6 +7,7 @@ try:
 except ModuleNotFoundError:
     Environment = FileSystemLoader = select_autoescape = None
 from src.utils.dates import ReportWindow, in_formal_window, is_late_addition
+
 
 def build_sections(items: list[dict], window: ReportWindow):
     recommended=[i for i in items if (i.get('normalized_score_10') or 0) >= 7 and i.get('status') != 'manual_check']
@@ -17,15 +19,59 @@ def build_sections(items: list[dict], window: ReportWindow):
     new=[i for i in items if in_formal_window(__import__('datetime').date.fromisoformat(i['review_date']) if i.get('review_date') else window.start, window)]
     return {"recommended": recommended, "by_genre": by_genre, "manual": manual, "aggregators": aggregators, "late": late, "new": new}
 
-def render_report(items: list[dict], window: ReportWindow, output_dir: str | Path="outputs/html") -> Path:
+
+def _fallback_html(items: list[dict], window: ReportWindow) -> str:
+    cards = "".join(
+        f'<div class="card"><b>{escape(str(i.get("artist") or "Unknown artist"))} — {escape(str(i.get("album") or "Unknown album"))}</b>'
+        f'<span>{escape(str(i.get("normalized_score_10") if i.get("normalized_score_10") is not None else "—"))}/10</span></div>'
+        for i in items
+    )
+    return f"<!doctype html><html><body><h1>Album Review Weekly Digest</h1><p>{window.start} to {window.end}</p>{cards}</body></html>"
+
+
+def _render_archive_page(report_paths: list[Path], docs_dir: Path) -> str:
+    links = []
+    for path in sorted(report_paths, reverse=True):
+        label = path.stem.replace("album-review-digest-", "").replace("_to_", " to ")
+        href = path.relative_to(docs_dir).as_posix()
+        links.append(f'<li><a href="{escape(href)}">{escape(label)}</a></li>')
+    body = "\n".join(links) or "<li>No reports generated yet.</li>"
+    return f"<!doctype html><html><body><h1>Album Review Archive</h1><ul>{body}</ul></body></html>\n"
+
+
+def _render_index_page(latest_report: Path | None, docs_dir: Path) -> str:
+    if latest_report:
+        latest_href = latest_report.relative_to(docs_dir).as_posix()
+        latest_link = f'<p><a href="{escape(latest_href)}">Open the latest weekly report</a></p>'
+    else:
+        latest_link = "<p>No weekly reports generated yet.</p>"
+    return f"<!doctype html><html><body><h1>Album Review Weekly Digest</h1>{latest_link}<p><a href=\"archive.html\">View the report archive</a></p></body></html>\n"
+
+
+def update_pages_index(docs_dir: str | Path = "docs") -> None:
+    docs_path = Path(docs_dir)
+    reports_dir = docs_path / "reports"
+    docs_path.mkdir(parents=True, exist_ok=True)
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    report_paths = list(reports_dir.glob("album-review-digest-*_to_*.html"))
+    latest = max(report_paths, default=None, key=lambda p: p.name)
+    (docs_path / "archive.html").write_text(_render_archive_page(report_paths, docs_path), encoding="utf-8")
+    (docs_path / "index.html").write_text(_render_index_page(latest, docs_path), encoding="utf-8")
+
+
+def render_report(items: list[dict], window: ReportWindow, output_dir: str | Path="docs/reports") -> Path:
     sections = build_sections(items, window)
     if Environment:
         env=Environment(loader=FileSystemLoader("src/report/templates"), autoescape=select_autoescape())
-        html=env.get_template("weekly_digest.html.j2").render(window=window, **sections)
+        try:
+            html=env.get_template("weekly_digest.html.j2").render(window=window, **sections)
+        except Exception:
+            html=_fallback_html(items, window)
     else:
-        cards = "".join(f"<div class=\"card\"><b>{i.get('artist')} — {i.get('album')}</b><span>{i.get('normalized_score_10') if i.get('normalized_score_10') is not None else '—'}/10</span></div>" for i in items)
-        html=f"<!doctype html><html><body><h1>Album Review Weekly Digest</h1><p>{window.start} to {window.end}</p>{cards}</body></html>"
+        html=_fallback_html(items, window)
     out=Path(output_dir); out.mkdir(parents=True, exist_ok=True)
     path=out / f"album-review-digest-{window.start}_to_{window.end}.html"
     path.write_text(html, encoding="utf-8")
+    if out.as_posix().endswith("docs/reports"):
+        update_pages_index(out.parent)
     return path
