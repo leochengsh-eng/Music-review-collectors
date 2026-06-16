@@ -1,0 +1,79 @@
+name: Weekly Album Review Site
+
+on:
+  schedule:
+    - cron: "0 2 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    env:
+      REPORT_TIMEZONE: Asia/Shanghai
+      REPORT_LOOKBACK_DAYS: 14
+      DELIVERY_MODE: pages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run weekly digest and build static site
+        run: python -m src.main --mode weekly --delivery pages
+
+      - name: Commit generated site files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs outputs/csv outputs/json logs
+          git commit -m "Update album review digest site" || echo "No changes to commit"
+          git push
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Upload backup artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: album-review-digest-backup
+          path: |
+            docs/
+            outputs/html/
+            outputs/csv/
+            outputs/json/
+            logs/

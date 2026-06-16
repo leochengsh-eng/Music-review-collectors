@@ -1,0 +1,9 @@
+[project]
+name = "album-review-digest"
+version = "0.1.0"
+description = "Weekly album review collection and email digest tool"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
