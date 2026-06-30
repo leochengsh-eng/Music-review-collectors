@@ -1,0 +1,44 @@
+{
+  "start": "2026-06-23",
+  "end": "2026-06-29",
+  "html": "docs/reports/album-review-digest-2026-06-23_to_2026-06-29.html",
+  "source_statuses": [
+    {
+      "source_name": "Pitchfork",
+      "status": "zero_items",
+      "items_found": 0,
+      "items_parsed": 0,
+      "items_failed": 0,
+      "error_message": "RSS feed returned zero entries",
+      "last_success_at": null
+    },
+    {
+      "source_name": "The Guardian",
+      "status": "zero_items",
+      "items_found": 0,
+      "items_parsed": 0,
+      "items_failed": 0,
+      "error_message": "RSS feed returned zero entries",
+      "last_success_at": null
+    },
+    {
+      "source_name": "Album of the Year",
+      "status": "success",
+      "items_found": 25,
+      "items_parsed": 25,
+      "items_failed": 0,
+      "error_message": null,
+      "last_success_at": null
+    },
+    {
+      "source_name": "Metacritic",
+      "status": "success",
+      "items_found": 25,
+      "items_parsed": 25,
+      "items_failed": 0,
+      "error_message": null,
+      "last_success_at": null
+    }
+  ],
+  "total_reviews": 50
+}
