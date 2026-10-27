@@ -1,0 +1,13 @@
+artist,album,release_type,review_source,review_url,review_date,raw_score,normalized_score_10,genre_bucket,subgenre,status,manual_check_reason
+Unknown Artist,Manual review required,unknown,Album of the Year,https://www.albumoftheyear.org/releases/this-week/,,,,Unknown,,manual_check,HTTP 403 blocked or rate-limited
+The Avalanches,No Bad Memories,album,Metacritic,https://www.metacritic.com/music/no-bad-memories/the-avalanches/,,,,Unknown,,aggregator_find,
+Eels,Cookie Happened,album,Metacritic,https://www.metacritic.com/music/cookie-happened/eels/,,,,Unknown,,aggregator_find,
+Fontaines DC,Dopamine Chamber,album,Metacritic,https://www.metacritic.com/music/dopamine-chamber/fontaines-dc/,,,,Unknown,,aggregator_find,
+Richard Thompson,"Hippies, Thugs & Heroes",album,Metacritic,https://www.metacritic.com/music/hippies-thugs-and-heroes/richard-thompson/,,,,Unknown,,aggregator_find,
+Troye Sivan,She's the Best,album,Metacritic,https://www.metacritic.com/music/shes-the-best/troye-sivan/,,,,Unknown,,aggregator_find,
+Teenage Fanclub,Do Not Dare to Dream,album,Metacritic,https://www.metacritic.com/music/do-not-dare-to-dream/teenage-fanclub/,,,,Unknown,,aggregator_find,
+Cameron Winter,Live at Carnegie Hall,album,Metacritic,https://www.metacritic.com/music/live-at-carnegie-hall/cameron-winter/,,,,Unknown,,aggregator_find,
+Taylor Swift,TLOAS: The Encore,album,Metacritic,https://www.metacritic.com/music/the-life-of-a-showgirl-the-encore/taylor-swift/,,,,Unknown,,aggregator_find,
+Tinashe,Popstar,album,Metacritic,https://www.metacritic.com/music/popstar/tinashe/,,,,Unknown,,aggregator_find,
+M83,I Wrote You a Letter,album,Metacritic,https://www.metacritic.com/music/i-wrote-you-a-letter/m83/,,,,Unknown,,aggregator_find,
+Unknown Artist,All recent album releases ...,album,Metacritic,https://www.metacritic.com/browse/music/all/all/all-time/new/?pageSize=50,,,,Unknown,,aggregator_find,
