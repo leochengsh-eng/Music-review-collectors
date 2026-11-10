@@ -1,0 +1,2 @@
+artist,album,release_type,review_source,review_url,review_date,raw_score,normalized_score_10,genre_bucket,subgenre,status,manual_check_reason
+Unknown Artist,Manual review required,unknown,Album of the Year,https://www.albumoftheyear.org/releases/this-week/,,,,Unknown,,manual_check,HTTP 403 blocked or rate-limited
